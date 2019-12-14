@@ -1,0 +1,25 @@
+function init(self)
+	local spawn_points = {
+		vmath.vector3(110, 44, 0), 
+		vmath.vector3(48, 44, 0), 
+		vmath.vector3(300, 30, 0),
+		vmath.vector3(322, 252, 0),
+		vmath.vector3(111, 240, 0),
+		vmath.vector3(153, 240, 0),
+		vmath.vector3(196, 240, 0),
+		vmath.vector3(202, 294, 0),
+		vmath.vector3(335, 286, 0),
+		vmath.vector3(160, 150, 0),
+		vmath.vector3(30, 252, 0),
+		vmath.vector3(80, 140, 0),
+		vmath.vector3(180, 40, 0),
+		vmath.vector3(45, 100, 0)
+	}
+	local max = 14
+	for i = 1, 5 do 
+		local pos = math.random(1, max)		
+		go.set_position(go.get_position() + spawn_points[pos], "object" .. tostring(i))
+		spawn_points[pos] = spawn_points[max]
+		max = max - 1
+	end
+end

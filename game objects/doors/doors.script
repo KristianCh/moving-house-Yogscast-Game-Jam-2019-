@@ -1,0 +1,13 @@
+function on_message(self, message_id, message, sender)
+	if message_id == hash("trigger_response") and message.other_group == hash("key") then
+		if message.enter then
+			sprite.play_flipbook("#sprite", "door_opened")
+			msg.post("#co", "disable")
+			sound.play("#open_sfx")
+		else
+			sprite.play_flipbook("#sprite", "door_closed")
+			msg.post("#co", "enable")
+			sound.play("#close_sfx")		
+		end
+	end
+end

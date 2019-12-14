@@ -1,0 +1,44 @@
+function init(self)
+	self.parent = nil
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Remove this function if not needed
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("contact_point_response") then
+		go.set_position(go.get_position() + message.normal * message.distance + message.normal)
+	elseif message_id == hash("set_p") then
+		go.set_position(message.p)
+	elseif message_id == hash("trigger_response") and message.other_group == hash("open") then
+		if message.enter then
+			msg.post("/manager", "start_timer")
+		end
+	elseif message_id == hash("trigger_response") and message.other_group == hash("postbox") then
+		if message.enter then
+			msg.post("/manager", "stop_timer", {success = true})
+			msg.post("/dude", "drop", {key = true})
+			sound.play("/dude#hand_in_sfx", {gain = 0.5, speed = 1.25})
+			label.set_text("/end/go#label1", "Get in car to finish")
+			particlefx.play("/end/go#postbox_pfx")
+			go.delete()
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Remove this function if not needed
+end

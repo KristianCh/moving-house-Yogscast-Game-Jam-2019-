@@ -1,0 +1,16 @@
+local function clamp(x, min, max)
+	if x < min then return min
+	elseif x > max then return max
+	else return x end
+end
+
+function init(self)
+	msg.post(".", "acquire_camera_focus")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("follow") then
+		local pos = go.get_position()
+		go.set_position(vmath.lerp(0.15, pos, vmath.vector3(clamp(message.x - 320, 0, 1784 - 640), 0, 0)))
+	end
+end

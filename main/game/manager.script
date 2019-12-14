@@ -1,0 +1,52 @@
+go.property("score", 0)
+go.property("toys", 0)
+go.property("total_time", 120)
+
+function init(self)
+	self.timer_running = false
+	self.timer = self.total_time
+end
+
+function final(self)
+end
+
+function update(self, dt)
+	msg.post("#game", "set_timer", {time = self.timer})
+	if self.timer_running then
+		self.timer = self.timer - dt
+		if self.timer <= 0 then
+			msg.post("#game", "stop_timer", {success = false})
+			self.timer_running = false
+			msg.post("main:/main", "end", {success = self.timer >= 0, 
+			score = math.ceil(self.score * (1 + self.timer / self.total_time)), 
+			toys = self.toys})
+		end
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("start_timer") and self.timer_running == false then
+		self.timer_running = true
+	elseif message_id == hash("stop_timer") then
+		self.timer_running = false
+		msg.post("#game", "stop_timer", {success = true})
+	elseif message_id == hash("hand_in") then
+		self.score = self.score + message.value
+		self.toys = self.toys + 1
+		msg.post("#game", "set_score", {score = self.score})
+	elseif message_id == hash("end") then
+		msg.post("main:/main", "end", {success = self.timer >= 0, 
+		score = math.ceil(self.score * (1 + self.timer / self.total_time)), 
+		toys = self.toys})
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Remove this function if not needed
+end

@@ -1,0 +1,85 @@
+go.property("speed", 100)
+go.property("facing", true)
+go.property("key_handed_in", false)
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.vector = vmath.vector3(0, 0, 0)
+	self.carrying = nil
+	self.can_grab = nil
+	self.standing = true
+end
+
+function update(self, dt)
+	go.set_position(go.get_position() + self.vector * dt)
+	if self.carrying ~= nil then
+		x = 15 
+		if self.facing then 
+			x = -15
+		end
+		msg.post(self.carrying, "set_p", {p = go.get_position() + vmath.vector3(x, 0, -0.6)})
+	end
+	msg.post("/camera", "follow", {x = go.get_position().x})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("contact_point_response") then
+		go.set_position(go.get_position() + message.normal * message.distance + message.normal)
+	elseif message_id == hash("trigger_response") and message.other_group ~= hash("car") then
+		if message.enter then
+			self.can_grab = message.other_id
+		else
+			self.can_grab = nil
+		end
+	elseif message_id == hash("trigger_response") and self.key_handed_in then
+		msg.post("/manager", "end")
+	elseif message_id == hash("drop") then
+		self.carrying = nil
+		if message.key then
+			self.key_handed_in = true
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("grab") and self.can_grab ~= nil and self.carrying == nil 
+		and action.released then 
+			self.carrying = self.can_grab
+			sound.play("#grab_sfx", {gain = 0.5, speed = 1.25})
+	elseif action_id == hash("grab") and self.carrying ~= nil and action.released then
+		self.carrying = nil
+		sound.play("#drop_sfx", {gain = 0.5, speed = 1.25})
+	elseif self.standing then
+		sprite.play_flipbook("#sprite", "walk")
+	end
+	self.standing = false
+	if action_id == hash("up") then
+		self.vector.y = self.speed
+		if action.released then
+			self.vector.y = 0
+		end			
+	elseif action_id == hash("down") then
+		self.vector.y = -self.speed
+		if action.released then
+			self.vector.y = 0
+		end	
+	elseif action_id == hash("left") then
+		self.vector.x = -self.speed
+		if action.released then
+			self.vector.x = 0
+		end	
+	elseif action_id == hash("right") then
+		self.vector.x = self.speed
+		if action.released then
+			self.vector.x = 0
+		end	
+	end
+	if action.released and self.vector.x == 0 and self.vector.y == 0 then
+		sprite.play_flipbook("#sprite", "stand")
+		self.standing = true
+	end
+	if self.standing == false then
+		sprite.set_hflip("#sprite", self.vector.x < 0)
+		self.facing = self.vector.x < 0
+	end
+end

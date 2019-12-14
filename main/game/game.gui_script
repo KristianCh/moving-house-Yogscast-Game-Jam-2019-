@@ -1,0 +1,19 @@
+local function clamp(x, min, max)
+	if x < min then return min
+	elseif x > max then return max
+	else return x end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("set_timer") then
+		gui.set_text(gui.get_node("timer"), "Time left: " .. clamp(math.floor(message.time), 0, 10000))
+	elseif message_id == hash("stop_timer") then
+		if message.success then 
+			gui.set_color(gui.get_node("timer"), vmath.vector3(0.2, 1, 0.2))
+		else
+			gui.set_color(gui.get_node("timer"), vmath.vector3(1, 0.2, 0.2))
+		end
+	elseif message_id == hash("set_score") then
+		gui.set_text(gui.get_node("score"), "Score: " .. math.floor(message.score))
+	end
+end

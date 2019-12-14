@@ -1,0 +1,51 @@
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	math.randomseed(os.clock()*100000000000)
+
+	msg.post("#game_proxy", "load")
+	self.success = true
+	self.score = 0
+	self.toys = 0
+
+	self.loading = "game"
+
+	self.pan = 0
+end
+
+function update(self, dt) 
+	self.pan = self.pan + dt
+	sound.set_pan("#theme_song", math.sin(self.pan) * 0.5)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("proxy_loaded") then
+		msg.post(sender, "init")
+		msg.post(sender, "enable")
+		sound.stop("#theme_song")
+		sound.play("#theme_song", {gain = 0.25, looping = true})
+	elseif message_id == hash("get_stats") then
+		msg.post(sender, "stats", {success = self.success, score = self.score, toys = self.toys})
+	elseif message_id == hash("proxy_unloaded") then
+		if self.loading == "end" then
+			msg.post("#end_proxy", "load")
+		else
+			msg.post("#game_proxy", "load")			
+		end
+	elseif message_id == hash("end") then
+		self.success = message.success
+		self.score = message.score
+		self.toys = message.toys
+		msg.post("#game_proxy", "disable")
+		msg.post("#game_proxy", "final")
+		msg.post("#game_proxy", "unload")
+		self.loading = "end"
+	elseif message_id == hash("restart") then
+		self.success = true
+		self.score = 0
+		self.toys = 0
+		msg.post("#end_proxy", "disable")
+		msg.post("#end_proxy", "final")
+		msg.post("#end_proxy", "unload")
+		self.loading = "game"
+	end
+end
